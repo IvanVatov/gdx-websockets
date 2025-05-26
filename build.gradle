@@ -1,10 +1,5 @@
-ext {
-    GROUPID = 'com.github.MrStahlfelge.gdx-websockets'
-    VERSION = '1.9.10.3-SNAPSHOT'
-}
-
 allprojects {
-
+    apply plugin: 'java-library'
     apply plugin: 'maven-publish'
 
     ext {
@@ -17,8 +12,30 @@ allprojects {
         mavenCentral()
     }
 
-    group = GROUPID
-    version = VERSION
+    group = 'com.github.MrStahlfelge.gdx-websockets'
+    version = '1.10.0'
+
+    java {
+        toolchain {
+            languageVersion = JavaLanguageVersion.of(8)
+        }
+    }
+
+    tasks.register('sourcesJar', Jar) {
+        from sourceSets.main.allSource
+        archiveClassifier.set('sources')
+    }
+
+    afterEvaluate {
+        publishing {
+            publications {
+                create("mavenJava", MavenPublication) {
+                    from components.java
+                    artifact sourcesJar
+                }
+            }
+        }
+    }
 
     tasks.withType(JavaCompile).configureEach {
         options.encoding = 'UTF-8'
@@ -29,6 +46,5 @@ allprojects {
             systemProperty 'file.encoding', 'UTF-8'
         }
     }
-
 }
 
