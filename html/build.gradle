@@ -11,8 +11,9 @@ dependencies {
   implementation "com.badlogicgames.gdx:gdx-backend-gwt:$gdxVersion:sources"
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
-  classifier = 'sources'
+tasks.register('sourcesJar', Jar) {
+  dependsOn classes
+  archiveClassifier.set('sources')
   from sourceSets.main.allSource
 }
 
