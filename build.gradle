@@ -4,6 +4,9 @@ ext {
 }
 
 allprojects {
+
+    apply plugin: 'maven-publish'
+
     ext {
         appName = 'gdx-websockets'
         gdxVersion = '1.13.1'
