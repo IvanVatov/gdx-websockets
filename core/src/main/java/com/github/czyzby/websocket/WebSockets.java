@@ -2,8 +2,6 @@ package com.github.czyzby.websocket;
 
 import com.badlogic.gdx.Gdx;
 import com.github.czyzby.websocket.data.WebSocketException;
-import com.github.czyzby.websocket.serialization.Serializer;
-import com.github.czyzby.websocket.serialization.impl.JsonSerializer;
 
 /** Utilities for web sockets.
  *
@@ -15,10 +13,6 @@ public class WebSockets {
     public static final String SECURE_WEB_SOCKET_ADDRESS_PREFIX = "wss://";
 
     protected static WebSocketFactory FACTORY;
-    /** Assigned as the initial {@link Serializer} to new {@link WebSocket} instances. Handles serializing of objects to
-     * strings or byte arrays when using {@link WebSocket#send(Object)} method. By default, serializes objects to JSON
-     * format using {@link JsonSerializer}. */
-    public static Serializer DEFAULT_SERIALIZER = new JsonSerializer();
     /**
      * Close code used to indicate an abnormal, automated close of the socket
      */

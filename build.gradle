@@ -4,20 +4,21 @@ allprojects {
 
     ext {
         appName = 'gdx-websockets'
-        gdxVersion = '1.13.1'
+        gdxVersion = '1.14.2'
         nvVersion = '2.14'
+        teavmVersion = '0.14.0'
     }
 
     repositories {
         mavenCentral()
     }
 
-    group = 'com.github.MrStahlfelge.gdx-websockets'
-    version = '1.10.2'
+    group = 'com.github.IvanVatov.gdx-websockets'
+    version = '1.11.0'
 
     java {
         toolchain {
-            languageVersion = JavaLanguageVersion.of(8)
+            languageVersion = JavaLanguageVersion.of(17)
         }
     }
 
