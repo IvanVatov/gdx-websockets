@@ -3,7 +3,6 @@ package com.github.czyzby.websocket;
 import com.github.czyzby.websocket.data.WebSocketCloseCode;
 import com.github.czyzby.websocket.data.WebSocketException;
 import com.github.czyzby.websocket.data.WebSocketState;
-import com.github.czyzby.websocket.serialization.Serializer;
 
 /** Common interface for all web socket implementations.
  *
@@ -48,16 +47,6 @@ public interface WebSocket {
      * @throws WebSocketException if unable to send the packet. */
     void sendKeepAlivePacket() throws WebSocketException;
 
-    /** @param serializer will be used to serialize passed packets. */
-    void setSerializer(Serializer serializer);
-
-    /** @return serializer used to serialize passed packets. */
-    Serializer getSerializer();
-
-    /** @param asString if true, packets will be serialized to strings instead of bytes. Defaults to false.
-     * @see #send(Object) */
-    void setSerializeAsString(boolean asString);
-
     /** @param sendGracefully if true, exceptions thrown during packet sending will not be thrown immediately - instead,
      *            they will be passed to {@link WebSocketListener#onError(WebSocket, Throwable)} to all registered
      *            listeners. Defaults to false. */
@@ -74,17 +63,9 @@ public interface WebSocket {
      * @param verifyHostname set this flag to configure if websocket should verify hostnames for SSL
      *                       connections. It is more secure, but will fail on older Android devices
      *                       with self-signed certificates. This does not change behaviour on HTML5.
-     *                       Default is false
+     *                       Default is true
      */
     void setVerifyHostname(boolean verifyHostname);
-
-    /** @param packet will be serialized and sent to the server if the client is connected. Nulls are ignored. Request
-     *            is ignored if client is not connected. Fails if no serializer is set.
-     * @throws WebSocketException if unable to send the packet due to an exception. Not thrown if the client is not
-     *             connected.
-     * @see #setSerializer(Serializer)
-     * @see #setSerializeAsString(boolean) */
-    void send(Object packet) throws WebSocketException;
 
     /** @param packet will be sent as-is to the server. Nulls are ignored. Request is ignored if client is not
      *            connected.

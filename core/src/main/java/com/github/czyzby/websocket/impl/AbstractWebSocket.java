@@ -3,11 +3,9 @@ package com.github.czyzby.websocket.impl;
 import com.badlogic.gdx.utils.Array;
 import com.github.czyzby.websocket.WebSocket;
 import com.github.czyzby.websocket.WebSocketListener;
-import com.github.czyzby.websocket.WebSockets;
 import com.github.czyzby.websocket.data.WebSocketCloseCode;
 import com.github.czyzby.websocket.data.WebSocketException;
 import com.github.czyzby.websocket.data.WebSocketState;
-import com.github.czyzby.websocket.serialization.Serializer;
 
 /**
  * Abstract base for {@link WebSocket} implementations.
@@ -18,28 +16,11 @@ public abstract class AbstractWebSocket implements WebSocket {
     private final String url;
     private final Array<WebSocketListener> listeners = new Array<WebSocketListener>(2); // Default 16 is likely too big.
     protected boolean useTcpNoDelay = true;
-    protected boolean verifyHostname = false;
-    private Serializer serializer = WebSockets.DEFAULT_SERIALIZER;
-    private boolean serializeAsString;
+    protected boolean verifyHostname = true;
     private boolean sendGracefully;
 
     public AbstractWebSocket(final String url) {
         this.url = url;
-    }
-
-    @Override
-    public Serializer getSerializer() {
-        return serializer;
-    }
-
-    @Override
-    public void setSerializer(final Serializer serializer) {
-        this.serializer = serializer;
-    }
-
-    @Override
-    public void setSerializeAsString(final boolean serializeAsString) {
-        this.serializeAsString = serializeAsString;
     }
 
     @Override
@@ -152,23 +133,6 @@ public abstract class AbstractWebSocket implements WebSocket {
     @Override
     public void sendKeepAlivePacket() throws WebSocketException {
         send("");
-    }
-
-    @Override
-    public void send(final Object packet) throws WebSocketException {
-        try {
-            if (packet != null) {
-                if (serializeAsString) {
-                    send(serializer.serializeAsString(packet));
-                } else {
-                    send(serializer.serialize(packet));
-                }
-            }
-        } catch (final WebSocketException exception) {
-            onSendingException(exception);
-        } catch (final Exception exception) {
-            onSendingException(exception);
-        }
     }
 
     @Override

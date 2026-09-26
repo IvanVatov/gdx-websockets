@@ -1,0 +1,5 @@
+dependencies {
+  api project(":core")
+  // Provided by the application's TeaVM backend (e.g. gdx-teavm) - not forced on consumers.
+  compileOnly "org.teavm:teavm-jso-apis:$teavmVersion"
+}

@@ -22,6 +22,13 @@ public class NvWebSocket extends AbstractWebSocket {
     }
 
     @Override
+    public void setVerifyHostname(final boolean verifyHostname) {
+        super.setVerifyHostname(verifyHostname);
+        // The factory keeps its own copy of the flag, read on every connect().
+        webSocketFactory.setVerifyHostname(verifyHostname);
+    }
+
+    @Override
     public void connect() throws WebSocketException {
         try {
             dispose();

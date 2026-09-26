@@ -1,95 +1,103 @@
 # libGDX Web Sockets
 
-Fork of [czyzby's websockets](https://github.com/czyzby/gdx-lml/tree/master/websocket), which seem to be unmaintained.
+Client-side web sockets for libGDX applications on desktop, Android and the web (TeaVM).
 
-See there for examples.
+Fork of [czyzby's websockets](https://github.com/czyzby/gdx-lml/tree/master/websocket) via
+[MrStahlfelge/gdx-websockets](https://github.com/MrStahlfelge/gdx-websockets), trimmed down to a
+plain text/binary socket API with a TeaVM backend.
 
-Default libGDX `Net` API provides only TCP sockets and HTTP requests. This library aims to add client-side web sockets support.
-It works on all platforms targeted by libGDX.
+## Modules
+
+| Module   | Platforms                   | Implementation                                                                 |
+|----------|-----------------------------|--------------------------------------------------------------------------------|
+| `core`   | shared (libGDX core project) | `WebSocket`, `WebSocketListener`, `WebSockets` API                            |
+| `common` | desktop, Android, iOS       | [nv-websocket-client](https://github.com/TakahikoKawasaki/nv-websocket-client) |
+| `teavm`  | web ([gdx-teavm](https://github.com/xpenatan/gdx-teavm)) | browser `WebSocket` through TeaVM JSO             |
 
 ## Dependencies
-If you don't have already, add Jitpack to your repositories in root `build.gradle` file:
 
-        maven { url "https://jitpack.io" }
+Artifacts are built by [JitPack](https://jitpack.io). Add the repository to the root `build.gradle`:
 
-`Gradle` dependency (for libGDX core project):
-```
-         implementation "com.github.MrStahlfelge.gdx-websockets:core:$wsVersion"
+```groovy
+maven { url 'https://jitpack.io' }
 ```
 
-GWT module:
-```
-         <inherits name='com.github.czyzby.websocket.GdxWebSocket' />
-```
+Set the version in `gradle.properties`:
 
-Desktop/Android/iOS:
-```
-         implementation "com.github.MrStahlfelge.gdx-websockets:common:$wsVersion"
+```properties
+wsVersion=1.11.0
 ```
 
-(based on [nv-websocket-client](https://github.com/TakahikoKawasaki/nv-websocket-client))
+Core project:
 
-### GWT (Web)
-`Gradle` dependency for libGDX html project
-```
-        implementation "com.github.MrStahlfelge.gdx-websockets:core:$wsVersion:sources"
-        implementation "com.github.MrStahlfelge.gdx-websockets:html:$wsVersion"
-        implementation "com.github.MrStahlfelge.gdx-websockets:html:$wsVersion:sources"
+```groovy
+api "com.github.IvanVatov.gdx-websockets:core:$wsVersion"
 ```
 
-GWT module (GdxDefinition.gwt.xml):
+Desktop / Android / iOS launcher projects:
+
+```groovy
+implementation "com.github.IvanVatov.gdx-websockets:common:$wsVersion"
 ```
-        <inherits name='com.github.czyzby.websocket.GdxWebSocketGwt' />
+
+TeaVM launcher project:
+
+```groovy
+implementation "com.github.IvanVatov.gdx-websockets:teavm:$wsVersion"
 ```
 
-### Version
+The `teavm` module only declares TeaVM (`teavm-jso-apis`) as `compileOnly`; the TeaVM version comes
+from your gdx-teavm backend. It is built against TeaVM 0.14.
 
-Specify the `wsVersion` in the `gradle.properties` file in the root directory:
-
-`wsVersion=1.9.10.3` (or the latest version)
-
-### Extensions
-
-- [gdx-websocket-serialization](https://github.com/MrStahlfelge/gdx-websockets/tree/master/serialization): a custom serialization mechanism, not based on reflection. Alternative to JSON-based communication. More verbose, but gives you full control over (de)serialization process. Useful for performance-critical applications.
-
-## Basic usage
+## Usage
 
 ### Initialization
 
-Make sure to call `CommonWebSockets.initiate()` in DesktopLauncher/AndroidLauncher/IOSLauncher launchers before creating web sockets:
-```
-        // Initiating web sockets module - safe to call before creating application:
-        CommonWebSockets.initiate();
-        new LwjglApplication(new MyApplicationListener());
+Call the platform's `initiate()` in the launcher, before any web socket is created.
+
+Desktop / Android / iOS:
+
+```java
+CommonWebSockets.initiate();
+new Lwjgl3Application(new MyGame(), config);
 ```
 
-In HTMLLauncher, make sure to call `GwtWebSockets.initiate()` before creating web sockets:
-```
-        @Override
-        public ApplicationListener createApplicationListener() {
-            // Initiating web sockets module - safe to call before creating application listener:
-            GwtWebSockets.initiate();
-            return new MyApplicationListener();
-        }
+TeaVM:
+
+```java
+TeaVMWebSockets.initiate();
+new WebApplication(new MyGame(), config);
 ```
 
 ### Connecting to a server
 
+```java
+WebSocket socket = WebSockets.newSocket(WebSockets.toSecureWebSocketUrl(host, 443, "websocket"));
+socket.setSendGracefully(true);
+socket.addListener(new WebSocketListener() { ... });
+socket.connect();
+
+socket.send(bytes);   // binary frame
+socket.send(text);    // text frame
 ```
-        WebSocket socket = WebSockets.newSocket(WebSockets.toWebSocketUrl(address, port));
-        socket.setSendGracefully(true);
-        socket.addListener(new WebsocketListener() { ... });
-        socket.connect();
-```
+
+Listener callbacks run on the socket's thread on desktop/Android — use `Gdx.app.postRunnable` to get
+back to the render thread. On the web they run on the browser's event loop.
+
+`setVerifyHostname` and `setUseTcpNoDelay` apply to `common` only; in the browser both are handled by
+the browser itself.
 
 ## Changes
 
-1.5 -> 1.6
+### 1.11.0
 
-- Added `AbstractWebSocketListener`, which handles object deserialization and logs errors. This is a solid base for your `WebSocketListener` implementation if don't use pure string-based communication. 
-- Added `WebSocketHandler`, which extends `AbstractWebSocketListener` even further. Instead of dealing with raw `Object` types and having to determine packet type on your own, you can register a `Handler` to a specific packet class and it will be invoked each time a packet of the selected type is received.
-- Added default `Serializer` implementation: `JsonSerializer`. Uses **LibGDX** `Json` API to serialize objects as strings.
-- Added `WebSockets#DEFAULT_SERIALIZER`. Modify this field to automatically assign serializer of your choice to all new web socket instances.
-- Added `Base64Serializer`. Uses **LibGDX** `Base64Coder` API to encode and decode the data to and from *BASE64*. Wraps around an existing serializer.
-- Added custom serialization in [gdx-websocket-serialization](natives/serialization) library. `ManualSerializer` is an alternative to the default `JsonSerializer`.
-- Added `WebSockets#closeGracefully(WebSocket)` null-safe utility method. Attempts to close the passed web socket and catches any thrown exceptions (their message is logged using `Gdx.app.debug` method). If passed web socket is null, it will be ignored. Useful for application disposing methods, when you don't exactly care if the web socket is not properly closed and *have to* continue disposing other native assets, even if `close()` call fails.
+- **Added** `teavm` module — web socket backend for gdx-teavm (`TeaVMWebSockets.initiate()`).
+- **Removed** `html` (GWT) module and the `.gwt.xml` module descriptors.
+- **Removed** `serialization` module.
+- **Removed** the object serialization layer from `core`: `WebSocket#send(Object)`,
+  `setSerializer`/`getSerializer`/`setSerializeAsString`, `WebSockets.DEFAULT_SERIALIZER`, the
+  `serialization` package, `AbstractWebSocketListener`, `WebSocketAdapter` and `WebSocketHandler`.
+  Serialize to `byte[]` or `String` yourself and implement `WebSocketListener` directly.
+- **Fixed** `NvWebSocket#setVerifyHostname` had no effect after construction; hostname verification
+  now defaults to `true`.
+- Built with Java 17 and libGDX 1.14.2.
